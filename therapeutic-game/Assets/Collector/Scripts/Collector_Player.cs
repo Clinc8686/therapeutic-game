@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.HID;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -12,7 +13,8 @@ public class Collector_Player : MonoBehaviour
     public GameObject playerScore;
     private Text playerText;
     public GameObject Ball;
-    private float speed = 4.0f;
+    private float FallSpeed;
+    private float SpawnSpeed;
     private Vector3 screenSize;
     private float topBorder;
     private float leftBorder;
@@ -20,6 +22,8 @@ public class Collector_Player : MonoBehaviour
     private float bottomBorder;
     void Start()
     {
+        FallSpeed = MainMenu.FallSpeedValue;
+        SpawnSpeed = MainMenu.SpawnSpeedValue;
         playerText = playerScore.GetComponent<Text>();
         
         screenSize = Camera.main.WorldToViewportPoint(transform.position);
@@ -37,7 +41,7 @@ public class Collector_Player : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(mousePos), Vector2.zero);
         if(hit.collider != null && (hit.collider.name == "transparent_box" || hit.collider.name == "transparent_top"))
         {
-            Debug.Log ("Target name: " + hit.collider.name);
+            //Debug.Log ("Target name: " + hit.collider.name);
         } else
         {
             Vector3 cursorPosition = new Vector3(cam.ScreenToWorldPoint(mousePos).x, cam.ScreenToWorldPoint(mousePos).y, 0); 
@@ -53,13 +57,14 @@ public class Collector_Player : MonoBehaviour
             CollectGameManager.Drops.Remove(col.gameObject);
             Destroy(col.gameObject);
             spawnNewEnemy();
+            //Invoke("spawnNewEnemy", SpawnSpeed);
         }
     }
     
     private void spawnNewEnemy()
     {
         GameObject Drop = Instantiate(Ball, new Vector3(Random.Range(leftBorder,rightBorder), (topBorder+1), 0), Quaternion.identity);
-        Vector2 movement = new Vector2(0, -speed);
+        Vector2 movement = new Vector2(0, -FallSpeed);
         
         Drop.GetComponent<Rigidbody2D>().AddForce(movement, ForceMode2D.Impulse);
         CollectGameManager.Drops.Add(Drop);
