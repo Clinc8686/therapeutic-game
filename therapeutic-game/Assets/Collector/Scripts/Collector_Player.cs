@@ -11,26 +11,25 @@ public class Collector_Player : MonoBehaviour
 {
     public GameObject player;
     public GameObject playerScore;
-    private Text playerText;
-    public GameObject Ball;
-    private float FallSpeed;
-    private float SpawnSpeed;
-    private Vector3 screenSize;
-    private float topBorder;
-    private float leftBorder;
-    private float rightBorder;
-    private float bottomBorder;
+    private Text _playerText;
+    public GameObject ball;
+    private float _fallSpeed;
+    private float _spawnSpeed;
+    private float _topBorder;
+    private float _leftBorder;
+    private float _rightBorder;
+    private float _bottomBorder;
     void Start()
     {
-        FallSpeed = MainMenu.FallSpeedValue;
-        SpawnSpeed = MainMenu.SpawnSpeedValue;
-        playerText = playerScore.GetComponent<Text>();
+        _fallSpeed = MainMenu.FallSpeedValue;
+        _spawnSpeed = MainMenu.SpawnSpeedValue;
+        _playerText = playerScore.GetComponent<Text>();
         
-        screenSize = Camera.main.WorldToViewportPoint(transform.position);
-        topBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 1, screenSize.z)).y;
-        leftBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, screenSize.z)).x;
-        rightBorder = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, screenSize.z)).x;
-        bottomBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, screenSize.z)).y;
+        Vector3 screenSize = MainMenu.ScreenSizeVector;
+        _topBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 1, screenSize.z)).y;
+        _leftBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, screenSize.z)).x;
+        _rightBorder = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, screenSize.z)).x;
+        _bottomBorder = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, screenSize.z)).y;
     }
     
     void Update()
@@ -39,7 +38,7 @@ public class Collector_Player : MonoBehaviour
         Vector3 mousePos = Mouse.current.position.ReadValue();
 
         RaycastHit2D hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(mousePos), Vector2.zero);
-        if(hit.collider != null && (hit.collider.name == "transparent_box" || hit.collider.name == "transparent_top"))
+        if(hit.collider != null && (hit.collider.name == "transparent_box" || hit.collider.name == "transparent_top") || PauseMenu.GamePaused)
         {
             //Debug.Log ("Target name: " + hit.collider.name);
         } else
@@ -53,18 +52,23 @@ public class Collector_Player : MonoBehaviour
     {
         if (col.gameObject.CompareTag("Enemy"))
         {
-            playerText.text = (Int16.Parse(playerText.text)+1).ToString();
+            _playerText.text = (Int16.Parse(_playerText.text)+1).ToString();
             CollectGameManager.Drops.Remove(col.gameObject);
             Destroy(col.gameObject);
             spawnNewEnemy();
-            //Invoke("spawnNewEnemy", SpawnSpeed);
+            //Invoke("spawnNewEnemy", _s_spawnSpeed);
         }
     }
     
     private void spawnNewEnemy()
-    {
-        GameObject Drop = Instantiate(Ball, new Vector3(Random.Range(leftBorder,rightBorder), (topBorder+1), 0), Quaternion.identity);
-        Vector2 movement = new Vector2(0, -FallSpeed);
+    {       
+        if (!MainMenu.ConstantFallValue)
+        {
+            CollectGameManager.FallSpeed += 0.1f;
+            _fallSpeed = CollectGameManager.FallSpeed;
+        }
+        GameObject Drop = Instantiate(ball, new Vector3(Random.Range(_leftBorder,_rightBorder), (_topBorder+1), 0), Quaternion.identity);
+        Vector2 movement = new Vector2(0, -_fallSpeed);
         
         Drop.GetComponent<Rigidbody2D>().AddForce(movement, ForceMode2D.Impulse);
         CollectGameManager.Drops.Add(Drop);
